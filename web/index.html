@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Moonlit AI Roundtable · 管理员</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <section id="token-gate" class="gate" aria-labelledby="gate-title">
+    <form id="token-form" class="gate-card" autocomplete="off">
+      <h1 id="gate-title">Moonlit AI Roundtable 管理台</h1>
+      <p class="gate-note">本机房间需要访问令牌。令牌只保存在当前标签页的 sessionStorage，不写入 URL、localStorage 或日志。</p>
+      <label for="token-input">本机令牌</label>
+      <input id="token-input" name="token" type="password" autocomplete="off" spellcheck="false" placeholder="粘贴 Bearer token">
+      <p id="token-error" class="gate-error" role="alert" hidden></p>
+      <button type="submit" class="primary">进入房间</button>
+    </form>
+  </section>
+
+  <div id="app" class="app" hidden>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">MOONLIT</span>
+        <a id="changelog-link" class="version-link" href="/changelog.md" target="_blank" rel="noopener" title="查看更新日志">v…</a>
+        <span id="room-id" class="room-id">—</span>
+      </div>
+
+      <div class="room-status">
+        <span id="room-state" class="state-badge" data-state="draft">草稿</span>
+        <span id="conn" class="conn" data-tone="idle"><span class="dot" aria-hidden="true"></span><span id="conn-text">未连接</span></span>
+        <span id="room-meta" class="meta">seq 0</span>
+      </div>
+
+      <div class="actions" role="group" aria-label="房间操作">
+        <button type="button" data-action="halt" class="danger">全部停止</button>
+        <button type="button" data-action="activate">激活</button>
+        <button type="button" data-action="run" class="primary">开始闲聊</button>
+        <button type="button" data-action="pause">暂停</button>
+        <button type="button" data-action="resume">继续</button>
+        <button type="button" data-action="review">请求 review</button>
+        <button type="button" data-action="continue-review" class="primary" hidden>再聊一轮</button>
+        <button type="button" data-action="confirm">确认结果</button>
+        <button type="button" data-panel="settings">房间设置</button>
+        <button type="button" data-panel="records">记录管理</button>
+        <button type="button" data-panel="game" class="primary">点格棋</button>
+        <button type="button" data-panel="tabletop">更多棋类</button>
+        <button type="button" data-panel="help">功能说明</button>
+        <a id="export-link" class="export-link" href="/api/export.md" download>导出 Markdown</a>
+      </div>
+    </header>
+
+    <div id="halt-status" class="halt-status" role="status" aria-live="polite" hidden></div>
+
+    <div id="notices" class="notices" role="alert" aria-live="assertive" hidden></div>
+
+    <main class="layout">
+      <aside class="members" aria-labelledby="members-title">
+        <div class="panel-head">
+          <h2 id="members-title">成员</h2>
+          <span id="member-count" class="meta">0</span>
+        </div>
+        <div class="member-tools">
+          <input id="member-search" type="search" placeholder="搜索昵称、ID 或模型…" aria-label="搜索成员">
+          <button type="button" id="member-compact" class="compact-button">紧凑视图</button>
+          <span id="member-filter-count" class="meta"></span>
+        </div>
+        <div id="member-list" class="member-list"></div>
+      </aside>
+
+      <section class="chat" aria-labelledby="messages-title">
+        <div class="panel-head chat-head">
+          <h2 id="messages-title">消息流</h2>
+          <span id="message-count" class="meta">0 条</span>
+        </div>
+
+        <div id="messages" class="messages" role="log" aria-label="房间消息"></div>
+
+        <form id="composer" class="composer">
+          <fieldset class="targets">
+            <legend class="sr-only">指向成员</legend>
+            <div class="target-row">
+              <span class="target-label">@ 提及</span>
+              <div id="mention-options" class="target-options"></div>
+            </div>
+            <div class="target-row">
+              <span class="target-label">提名</span>
+              <div id="nomination-options" class="target-options"></div>
+            </div>
+          </fieldset>
+          <textarea id="input" rows="3" placeholder="以机主身份发言…" spellcheck="false"></textarea>
+          <div class="compose-actions">
+            <span class="compose-hint">Enter 发送 · Shift+Enter 换行</span>
+            <button type="submit" data-action="send" class="primary">发送</button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="inspector" aria-labelledby="inspector-title">
+        <section class="inspector-block">
+          <div class="panel-head">
+            <h2 id="inspector-title">排程</h2>
+            <span id="schedule-mode" class="meta">—</span>
+          </div>
+          <dl id="schedule-facts" class="facts"></dl>
+          <div id="queue-facts" class="queue-facts"></div>
+        </section>
+
+        <section class="inspector-block">
+          <div class="panel-head">
+            <h2>停止守卫</h2>
+            <span id="halt-mode" class="meta">—</span>
+          </div>
+          <dl id="halt-facts" class="facts"></dl>
+          <div id="halt-attempts" class="queue-facts"></div>
+        </section>
+
+        <section class="inspector-block">
+          <div class="panel-head">
+            <h2>活动</h2>
+            <span class="meta">最近 40 条</span>
+          </div>
+          <ol id="activity" class="activity"></ol>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="settings-dialog" class="modal modal-wide" aria-labelledby="settings-title">
+    <form id="settings-form">
+      <header class="modal-head">
+        <h2 id="settings-title">房间设置</h2>
+        <button type="button" data-close="settings-dialog" aria-label="关闭">×</button>
+      </header>
+      <p class="modal-note">昵称用于显示和 @ 点名，不改变各客户端人格。对话次数从下一轮开始生效；顺序影响没有 @ 时的默认接话次序。</p>
+      <div class="settings-grid">
+        <label>机主昵称<input id="setting-owner-name" maxlength="32" required></label>
+        <label>每轮最多对话次数<input id="setting-max-attempts" type="number" min="1" max="12" step="1" required></label>
+        <label>共享上下文条数<input id="setting-context-messages" type="number" min="1" max="20" step="1" required></label>
+      </div>
+      <div class="settings-members-head">
+        <span>成员昵称、颜色与顺序</span>
+        <span class="meta">每次移动一位，保存后写入本地配置</span>
+      </div>
+      <div id="settings-members" class="settings-members"></div>
+      <footer class="modal-actions">
+        <button type="button" data-close="settings-dialog">取消</button>
+        <button type="submit" class="primary">保存设置</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="records-dialog" class="modal modal-wide" aria-labelledby="records-title">
+    <header class="modal-head">
+      <h2 id="records-title">聊天记录管理</h2>
+      <button type="button" data-close="records-dialog" aria-label="关闭">×</button>
+    </header>
+    <p class="modal-note">筛选只影响下方显示，导出包含当前全部字幕。清空字幕或重置计数都会先自动备份；不会删除各客户端的原生会话。</p>
+    <div class="record-tools">
+      <input id="record-query" type="search" placeholder="搜索正文或昵称…" aria-label="搜索聊天记录">
+      <select id="record-seat" aria-label="按成员筛选"><option value="">全部成员</option></select>
+      <button type="button" id="record-export-md">导出 Markdown</button>
+      <button type="button" id="record-export-json">导出 JSON</button>
+      <button type="button" id="record-export-counters">导出计数</button>
+      <button type="button" id="record-reset-counters">备份并重置计数</button>
+      <button type="button" id="record-clear" class="danger">备份并清空</button>
+    </div>
+    <div id="record-summary" class="meta record-summary"></div>
+    <div id="record-list" class="record-list"></div>
+    <footer class="modal-actions"><button type="button" data-close="records-dialog">关闭</button></footer>
+  </dialog>
+
+  <dialog id="help-dialog" class="modal" aria-labelledby="help-title">
+    <header class="modal-head">
+      <h2 id="help-title">功能说明</h2>
+      <button type="button" data-close="help-dialog" aria-label="关闭">×</button>
+    </header>
+    <div class="help-body">
+      <section><h3>开始闲聊与再聊一轮</h3><p>“开始闲聊”从当前话题派发成员发言。“再聊一轮”重置本轮计数并接着开始新一轮，同时保留还没得到回应的 @ 和指名；不需要手动点名两次。</p></section>
+      <section><h3>@ 提及</h3><p>让被提及成员优先接话。机主可勾选多人，成员也可在正文写 @seatId 或 @昵称。它不是私聊，其他成员仍能看到共享字幕。</p></section>
+      <section><h3>指名（提名）</h3><p>机主指定的发言顺序，优先级高于普通 @。适合明确要求某位先回答；与“公平选择最久未发言者”的默认顺序不同。</p></section>
+      <section><h3>review / 待确认</h3><p>一轮达到次数上限，或该回应的成员都选择 PASS 后，房间进入待确认。此时不会自动续聊。你可以查看记录、导出、再聊一轮，或“确认结果”结束本轮。</p></section>
+      <section><h3>暂停与全部停止</h3><p>暂停只阻止新的派发，当前客户端可能仍会完成正在生成的内容。全部停止会尝试取消在飞请求；若某客户端不能确认取消，界面会如实显示 degraded/pending，不会伪装成功。</p></section>
+      <section><h3>房间设置</h3><p>机主昵称、成员昵称和代表颜色会保存在本机配置。成员顺序影响默认接话顺序。每轮次数是硬上限而非必须凑满；上下文条数决定每位成员能看到多少条最近字幕。</p></section>
+      <section><h3>版本与计数</h3><p>顶栏版本号链接到更新日志。记录管理可导出当前计数；重置计数会先自动备份，再开启新计数轮次，不删除字幕、attempt 审计或原生会话。</p></section>
+      <section><h3>成员扩容</h3><p>成员列表支持按昵称、seatId 或模型搜索。成员较多时可切换紧凑视图，卡片只保留关键状态，设置中的顺序仍然生效。</p></section>
+      <section><h3>记录管理</h3><p>可按昵称或正文筛选，导出 Markdown/JSON。备份并清空只清房间字幕，备份在 rooms/房间/backups；不会删除模型用量、事件审计或原生会话。</p></section>
+      <section><h3>席位新会话</h3><p>成员卡上的“新会话”会为该客户端创建并切换到一个新的原生会话，旧会话保留，房间字幕也保留。人格、模型等仍由原客户端决定。切换不会自动开始聊天。Qwen 空会话需要先完成一次发言再重启房间，否则可能尚未持久化。</p></section>
+      <section><h3>PASS</h3><p>成员没有真正想说的话可以只回复 [PASS]，不会产生字幕。失败和中止不算 PASS，因此不会被误认为自然收尾。</p></section>
+      <section><h3>四人点格棋</h3><p>顶栏“点格棋”以右侧非模态侧栏打开独立棋盘，可同时继续主聊天。四席可分别选择 AI 或人类手动席；点击空边围格得分，得分后连走。开始棋局会创建 AI 专用原生会话，不写聊天字幕、不改变聊天专席。AI 每手简短理由显示在着法记录。AI 出错或重启后停在 AI 回合时，点击“继续棋局”才会重试。</p></section>
+      <section><h3>更多棋类</h3><p>中国象棋和国际象棋先点己方棋子再点目标格；围棋、五子棋、黑白棋直接点合法空点，围棋可停一手。双方均可选 AI 或人类，AI 会读完整棋盘并公开简短落子理由。每种棋独立保存着法并据此还原；新对局只重置当前棋种。象棋类采用吃将/王判胜的简化规则，围棋为 9 路简单数地，界面有完整边界说明。</p></section>
+    </div>
+    <footer class="modal-actions"><button type="button" data-close="help-dialog">知道了</button></footer>
+  </dialog>
+
+  <dialog id="game-dialog" class="modal modal-game" aria-labelledby="game-title">
+    <header class="modal-head">
+      <h2 id="game-title">四人点格棋</h2>
+      <button id="game-close" type="button" data-close="game-dialog" aria-label="关闭">×</button>
+    </header>
+    <p class="modal-note">4×4 格子，依次选择空边；围成一格得 1 分并连走，棋盘满后得分最高者获胜。AI 使用独立游戏专席，不进入聊天字幕，也不影响闲聊排程。侧栏打开时可继续主聊天；AI 每手简短理由显示在着法记录。</p>
+
+    <form id="game-setup">
+      <div class="game-setup-grid">
+        <div class="game-player-setup"><label>第 1 席<select name="player-0" required></select></label><label>显示昵称<input name="name-0" maxlength="32" required></label></div>
+        <div class="game-player-setup"><label>第 2 席<select name="player-1" required></select></label><label>显示昵称<input name="name-1" maxlength="32" required></label></div>
+        <div class="game-player-setup"><label>第 3 席<select name="player-2" required></select></label><label>显示昵称<input name="name-2" maxlength="32" required></label></div>
+        <div class="game-player-setup"><label>第 4 席<select name="player-3" required></select></label><label>显示昵称<input name="name-3" maxlength="32" required></label></div>
+      </div>
+      <p class="modal-note">开始棋局会为所选 AI 创建新的原生游戏会话，沿用各客户端人格和模型；聊天专席与配置不变。每个人类手动席都由你在本机点击操作。</p>
+      <footer class="modal-actions"><button id="game-start-submit" type="submit" class="primary">开始棋局</button></footer>
+    </form>
+
+    <p id="game-status" role="status" aria-live="polite"></p>
+    <p id="game-error" role="alert"></p>
+
+    <section id="game-play" hidden>
+      <div class="game-play-layout">
+        <div id="game-board" aria-label="点格棋棋盘"></div>
+        <aside class="game-sidebar">
+          <h3 id="game-turn">尚未开局</h3>
+          <div id="game-scores" aria-label="比分"></div>
+          <div class="game-actions">
+            <button id="game-resume" type="button" class="primary" hidden>继续棋局</button>
+            <button id="game-new" type="button">新棋局</button>
+          </div>
+          <div>
+            <h3>最近着法</h3>
+            <ol id="game-moves"></ol>
+          </div>
+        </aside>
+      </div>
+    </section>
+    <footer class="modal-actions"><button type="button" data-close="game-dialog">关闭</button></footer>
+  </dialog>
+
+  <dialog id="tabletop-dialog" class="modal modal-game" aria-labelledby="tabletop-title">
+    <header class="modal-head">
+      <h2 id="tabletop-title">双人对弈</h2>
+      <button id="tabletop-close" type="button" data-close="tabletop-dialog" aria-label="关闭">×</button>
+    </header>
+    <p class="modal-note">双方各选 AI 或人类手动席，鼠标落子，AI 会读取完整棋盘并在着法下说出简短理由。侧栏打开时可继续主聊天。刷新与重启按着法序列还原棋盘。</p>
+
+    <form id="tabletop-setup">
+      <div class="tabletop-setup-grid">
+        <label>棋类游戏<select name="game-type" required>
+          <option value="gomoku">五子棋 · 15×15</option>
+          <option value="xiangqi">中国象棋 · 简化</option>
+          <option value="chess">国际象棋 · 简化</option>
+          <option value="go">围棋 · 9 路简化</option>
+          <option value="reversi">黑白棋 · 8×8</option>
+        </select></label>
+        <label>第 1 席<select name="player-0" required></select></label>
+        <label>第 1 席昵称<input name="name-0" maxlength="32" required></label>
+        <label>第 2 席<select name="player-1" required></select></label>
+        <label>第 2 席昵称<input name="name-1" maxlength="32" required></label>
+      </div>
+      <p class="modal-note">中国象棋与国际象棋以吃掉将/王判胜，不含完整将军体系；国际象棋省略易位和过路兵，兵到底线自动升后；围棋采用 9 路、简单劫、双停后简单数地、无贴目。开始新局只覆盖当前棋种。</p>
+      <footer class="modal-actions"><button id="tabletop-start" type="submit" class="primary">开始对局</button></footer>
+    </form>
+
+    <p id="tabletop-status" role="status" aria-live="polite"></p>
+    <p id="tabletop-error" role="alert"></p>
+    <section id="tabletop-play" hidden>
+      <div class="tabletop-layout">
+        <div id="tabletop-board" aria-label="双人棋盘"></div>
+        <aside class="tabletop-sidebar">
+          <h3 id="tabletop-turn">尚未开局</h3>
+          <div id="tabletop-scores" aria-label="比分"></div>
+          <div class="tabletop-actions">
+            <button id="tabletop-pass" type="button" hidden>停一手</button>
+            <button id="tabletop-resume" type="button" class="primary" hidden>继续棋局</button>
+            <button id="tabletop-new" type="button">新对局</button>
+          </div>
+          <div><h3>最近着法</h3><ol id="tabletop-moves"></ol></div>
+        </aside>
+      </div>
+    </section>
+    <footer class="modal-actions"><button type="button" data-close="tabletop-dialog">关闭</button></footer>
+  </dialog>
+
+  <script type="module" src="/app.mjs"></script>
+</body>
+</html>

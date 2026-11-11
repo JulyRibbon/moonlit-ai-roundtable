@@ -1,0 +1,11 @@
+# .bat/.cmd 必须检成 CRLF：cmd.exe 遇到混合/纯 LF 行尾会把 `if (...)` 块拆错。
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 其余文本统一 LF，避免不同机器 clone 后出现无意义的行尾 diff。
+*.mjs text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

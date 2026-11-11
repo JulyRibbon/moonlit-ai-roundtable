@@ -1,0 +1,80 @@
+{
+  "_comment": "复制本文件为 config/members.local.json 后填写占位内容。本文件只是示例，不含任何真实会话或凭据；请勿把真实 token 提交进仓库。",
+  "_fields": "roomId/seatId 只能是字母或数字开头、仅含字母数字下划线短横的裸标识符；clientType 可选 dsh / kimi-code / zcode / qwen-code / fake；voiceMode 可选 native / external / none。displayName 是界面昵称，color 是 #RRGGBB 代表色，都不是人格正文。",
+  "_nativeSessionRef": "dsh / kimi-code / zcode / qwen-code 席位必须填写已存在的原生会话 id；fake 席位可省略。机主点击新会话或开始含 AI 的棋局时才会创建新会话；游戏专席独立保存，不写回聊天配置。",
+  "_client": "可选 client 对象用于保留客户端专用配置（如 baseUrl、token、exe、cli）；它不会被日志打印。不要在这里放 persona、prompt、systemPrompt 或 agentsMd 正文。",
+  "roomId": "example-room",
+  "ownerName": "机主",
+  "maxAttempts": 3,
+  "contextMessages": 8,
+  "budget": {
+    "_comment": "可选预算闸门：只在派发前预占并拒绝超额请求，不能阻止已经在飞行请求产生的费用。maxCostYuan 单位元；allowUnknownCost=false 时，未配置价格的付费座位会被拒绝派发（免费本地模型可全部填 0）。本示例不包含任何真实价格。",
+    "_priceBookFormat": "priceBook 按 seatId 配置：{input, cacheRead, cacheWrite, output} 为元/百万 token，multiplier 为可选倍率。缺省或不完整的价格不会被替换成任何内置价目。",
+    "_priceBookExample": {
+      "your-seat-id": {
+        "input": 0,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "output": 0,
+        "multiplier": 1
+      }
+    },
+    "allowUnknownCost": false,
+    "defaultMaxOutputTokens": 512
+  },
+  "seats": [
+    {
+      "_comment": "DeepSeek Harness 原生会话；把占位值换成 DSH 中已存在的 sessionId。",
+      "seatId": "deepseek",
+      "displayName": "DeepSeek",
+      "color": "#6ea8ff",
+      "clientType": "dsh",
+      "nativeSessionRef": "REPLACE_WITH_DSH_SESSION_ID",
+      "enabled": true,
+      "voiceMode": "none"
+    },
+    {
+      "_comment": "Kimi Code Web 原生会话；连接前请先在独立终端启动 kimi web。",
+      "seatId": "kimi",
+      "displayName": "Kimi",
+      "color": "#c79bff",
+      "clientType": "kimi-code",
+      "nativeSessionRef": "REPLACE_WITH_KIMI_SESSION_ID",
+      "enabled": true,
+      "voiceMode": "external"
+    },
+    {
+      "_comment": "ZCode 原生会话；client.exe / client.cli 可按需覆盖默认安装路径。",
+      "seatId": "glm",
+      "displayName": "GLM",
+      "color": "#63d2a4",
+      "clientType": "zcode",
+      "nativeSessionRef": "REPLACE_WITH_ZCODE_SESSION_ID",
+      "enabled": true,
+      "voiceMode": "external"
+    },
+    {
+      "_comment": "Qwen Code 原生会话（qwen serve，http-bridge）；sessionId 用 scripts/setup-qwen-seat.mjs 生成后填入。",
+      "seatId": "qwen",
+      "displayName": "Qwen",
+      "color": "#e9b45f",
+      "clientType": "qwen-code",
+      "nativeSessionRef": "REPLACE_WITH_QWEN_SESSION_ID",
+      "enabled": false,
+      "voiceMode": "external",
+      "client": {
+        "baseUrl": "http://127.0.0.1:58691",
+        "cwd": "C:/KIMIW/ai-room/rooms/r_main/qwen"
+      }
+    },
+    {
+      "_comment": "离线 FakeBridge 席位，仅用于本地演练；enabled:false 时不会连接。",
+      "seatId": "fake",
+      "displayName": "Fake",
+      "color": "#8c9aab",
+      "clientType": "fake",
+      "enabled": false,
+      "voiceMode": "none"
+    }
+  ]
+}

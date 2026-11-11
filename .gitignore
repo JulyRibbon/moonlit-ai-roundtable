@@ -1,0 +1,8 @@
+node_modules/
+state/
+rooms/
+dist/
+config/members.local.json
+config/members.local.json*
+*.log
+*.tmp
