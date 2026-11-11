@@ -189,7 +189,7 @@ kill.bat --all
 | 2961 | ai-room HTTP/SSE | `server/live.mjs` 默认 |
 | 58690 | Kimi Code Web | `start-all` 默认 |
 | 58691 | Qwen Code `qwen serve` | `start-all` 默认 |
-| 14306 | Qwen 桌面 App | **不要碰**；房间不用它 |
+| 本机记录为 14306 | Qwen 桌面 App 现有实例 | **不要接管或修改**；其他机器的桌面端口无需一致 |
 
 ### 4.2 排查端口
 
@@ -379,7 +379,7 @@ ZCode：
 
 Qwen：
 
-- Qwen 席位使用独立的 `qwen serve`（默认 58691），不碰桌面 App 的 14306。
+- Qwen 席位使用独立的 `qwen serve`（默认 58691），不接管桌面 App 的现有实例；本机记录桌面端口为 14306，其他机器无需一致。
 - 首次建专席（用 1.3 节设置的 `NODE24`；不要用 PATH 上的 Node 18）：
 
   ```bat
@@ -543,7 +543,7 @@ Authorization: Bearer <TOKEN>
 | 启动窗口一闪而过 | `state\start-all.log` | 在 cmd 里运行 `start-all.bat` 看完整错误；失败窗口会暂停 | 不要反复双击 |
 | 2961 占用 | `netstat -ano` | 退出旧窗口；确认 PID 后结束；或换端口 | 不要直接 `taskkill /IM node.exe` |
 | Kimi 58690 卡住 | `/api/v1/meta` 是否有响应 | 确认 PID 后结束卡住的 `kimi web` | 不要结束 DSH |
-| Qwen 58691 卡住 | `/health` | 确认 PID 后结束；或换 `--qwen-port` 并同步 `client.baseUrl` | 不要碰 14306 |
+| Qwen 58691 卡住 | `/health` | 确认 PID 后结束；或换 `--qwen-port` 并同步 `client.baseUrl` | 不要接管桌面 App 的现有实例（本机记录为 14306） |
 | Kimi 60 秒未就绪 | 单独启动 `kimi web` | 看真实错误；机器忙时等或释放资源 | 不要无限调大超时来掩盖 |
 | Qwen ACP 超时 | `state\qwen-serve.log` | 确认内存；重启 Qwen/房间；恢复会按原 id resume | 不要改系统虚拟内存或擅关无关程序 |
 | Qwen `session_not_found` | 是否 404；是否已获 202 | 共享恢复锁按原 id resume；仅未获 202 的 prompt 可重投一次 | 不要新建 id 顶替；不要重放已获 202 的请求 |

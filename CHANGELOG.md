@@ -11,6 +11,7 @@
 - 新增 `docs/maintenance.md` 与 `docs/acceptance-checklist.md`，明确故障处理、离线与真实证据以及“可声明支持”的最低标准。
 - 当前仅实测 DSH、Kimi Code、ZCode、Qwen Code；其他客户端按指南自行实现和验证，不把可扩展写成已兼容。
 - 本轮只改文档、配置注释和版本，不新增客户端运行时协议。
+- README 补充 Vibe Coding 开发声明、机主决策权及参与开发的客户端与模型名称。
 
 ## 0.5.0 — 2026-11-11
 

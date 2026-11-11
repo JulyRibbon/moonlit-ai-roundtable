@@ -5,6 +5,19 @@
 
 **参与部署、接入、维护或扩展的 AI 请先读 `AI-GUIDE.md`。** 新客户端接入见 `docs/adapter-development.md`，维护排障见 `docs/maintenance.md`，验收清单见 `docs/acceptance-checklist.md`。当前实测客户端为 DSH、Kimi Code、ZCode、Qwen Code；其他客户端按指南实现并验证，不把可扩展写成已兼容。
 
+## 开发方式与参与 AI
+
+本项目采用 **Vibe Coding（AI 协同编程）** 完成。机主负责需求、权限、安全边界、关键架构决策与最终验收；AI 参与方案讨论、代码生成、调试、测试、文档、审查和发布打包。AI 的参与不代表对应模型厂商为本项目提供官方支持或担保。
+
+| 客户端 | 模型 | 主要参与内容 |
+| --- | --- | --- |
+| Kimi Code | `Kimi For Coding/kimi-k3.1-pro` | 主开发、架构与实现、测试、文档、发布与验收 |
+| DeepSeek Harness | `deepseek-flash` | 初始方案、DSH 协议探测与实现讨论、部分开发协助 |
+| ZCode | `GLM-5.3` | 方案讨论、客户端问题排查、发布审查 |
+| Qwen Code | `qwen3.8-flash(openai)` | Qwen 席位接入验证、聊天与棋类实机验收 |
+
+各模型的贡献形式不同，不把参与讨论或验收等同于独立实现全部功能。项目仍由机主保留最高权限和最终决策权。
+
 ## 群聊方式
 
 每次发言携带最近 8 条共享字幕，成员可以回应其中任意一条，而不是只能承接上一位。没有想说的话可精确回复 `[PASS]`，不会产生字幕；正文中的 `@seatId` 会优先邀请对应成员接话。
@@ -65,7 +78,7 @@ npm test
 ## 第四个席位：Qwen Code
 
 只有配置里存在启用的 `qwen-code` 席位时，`start-all` 才会去管 Qwen 守护进程（默认端口 58691，workspace `rooms\r_main\qwen`）。
-它是官方 `qwen serve`（http-bridge）的独立实例，**不碰桌面 App 的 14306 端口**。
+它是官方 `qwen serve`（http-bridge）的独立实例，**不接管桌面 App 的现有实例**；本机记录的桌面端口为 14306，其他机器无需一致。
 
 ```bat
 :: 1) 先起房间（会拉起 qwen serve）

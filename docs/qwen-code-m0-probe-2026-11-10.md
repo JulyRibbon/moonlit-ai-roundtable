@@ -1,7 +1,7 @@
 # Qwen Code M0 探测报告（2026-11-10，零成本）
 
 > 结论：**协议可用**。本机 Qwen Code Desktop 自带 `serve`（http-bridge，官方标 Stage 1 experimental），
-> 回环 + 不开 `--require-auth` 时免 token；房间用独立实例即可，不碰桌面 App 的 14306 端口。
+> 回环 + 不开 `--require-auth` 时免 token；房间用独立实例即可，不接管本机桌面 App 的 14306 实例；其他机器的桌面端口无需一致。
 > 本轮只做只读/建会话/挂接探测，**没有发 prompt、没有产生任何模型调用**。
 
 ## 1. 运行时与进程事实
