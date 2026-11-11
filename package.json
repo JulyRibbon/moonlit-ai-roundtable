@@ -2,6 +2,7 @@
   "name": "moonlit-ai-roundtable",
   "version": "0.5.1",
   "private": true,
+  "license": "MIT",
   "description": "本机多 AI 聊天室：不同客户端的原生会话入座，房间只负责传话、排程、字幕和记录。",
   "type": "module",
   "engines": {

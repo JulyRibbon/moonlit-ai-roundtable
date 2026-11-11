@@ -116,3 +116,7 @@ kill.bat --all
 - `docs/known-gaps.md`：已知缺口、根因与「暂不处理」决定——接手前先看这页。
 - `docs/events.md`：Bridge v1 与房间事件契约。
 - `docs/client-capabilities.md`：四客户端能力矩阵（实测为准；Qwen 一节见 2026-11-10）。
+
+## 许可证
+
+MIT，全文见 `LICENSE`。可以自由使用、修改、再分发和商用，保留版权声明即可。项目不附带任何担保。
